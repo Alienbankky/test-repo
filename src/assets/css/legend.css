@@ -1,0 +1,55 @@
+.my-legend .legend-title {
+    text-align: left;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 90%;
+    }
+  .my-legend .legend-scale ul {
+    margin: 0;
+    margin-bottom: 5px;
+    padding: 0;
+    float: left;
+    list-style: none;
+    }
+  .my-legend .legend-scale ul li {
+    font-size: 100%;
+    list-style: none;
+    margin-left: 0;
+    line-height: 20px;
+    margin-bottom: 1px;
+    }
+  .my-legend ul.legend-labels li span {
+    display: block;
+    float: left;
+    height: 16px;
+    width: 30px;
+    margin-right: 5px;
+    margin-left: 0;
+    border: 1px solid #999;
+    }
+  .my-legend .legend-source {
+    font-size: 70%;
+    color: #999;
+    clear: both;
+    }
+  .my-legend a {
+    color: #777;
+    }
+    .chartWrapper {
+      position: relative;
+  }
+  
+  .chartWrapper > canvas {
+      position: absolute;
+      left: 0;
+      top: 0;
+      pointer-events:none;
+  }
+  
+  .chartAreaWrapper {
+      width: 600px;
+      overflow-x: scroll;
+  }
+
+
+  
