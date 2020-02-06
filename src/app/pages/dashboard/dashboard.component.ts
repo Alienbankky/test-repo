@@ -1,23 +1,21 @@
 import { Component,OnInit, ViewEncapsulation, AfterViewInit, ViewChild, ElementRef  } from '@angular/core';
 
 
-import { enableRipple, Ajax, removeClass } from '@syncfusion/ej2-base';
+import { enableRipple, Ajax, removeClass,Browser } from '@syncfusion/ej2-base';
 enableRipple(true);
 
 
 import { StockChart, Chart, ColumnSeries, Category } from '@syncfusion/ej2-charts';
-import { chartData } from './indicator-data';
 import { DataManager, Query } from '@syncfusion/ej2-data';
 import { DateTime, AreaSeries, CandleSeries, HiloOpenCloseSeries, HiloSeries, LineSeries, SplineSeries  } from '@syncfusion/ej2-charts';
 import { AccumulationDistributionIndicator, AtrIndicator, BollingerBands, EmaIndicator, MomentumIndicator } from '@syncfusion/ej2-charts';
 import { MacdIndicator, RsiIndicator, Trendlines, SmaIndicator, StochasticIndicator, Export } from '@syncfusion/ej2-charts';
-import { TmaIndicator, RangeTooltip, Tooltip, Crosshair , IStockChartEventArgs, ChartTheme} from '@syncfusion/ej2-charts';
+import { TmaIndicator, RangeTooltip, Tooltip, Crosshair , IStockChartEventArgs, ChartTheme,IPointRenderEventArgs,Logarithmic, 
+    StripLine, IAxisLabelRenderEventArgs, ITooltipRenderEventArgs} from '@syncfusion/ej2-charts';
 StockChart.Inject(DateTime, AreaSeries, CandleSeries, HiloOpenCloseSeries, HiloSeries, LineSeries, SplineSeries);
 StockChart.Inject(AccumulationDistributionIndicator, AtrIndicator, BollingerBands, EmaIndicator, MomentumIndicator);
 StockChart.Inject(MacdIndicator, RsiIndicator, SmaIndicator, StochasticIndicator);
 StockChart.Inject(Trendlines, TmaIndicator, RangeTooltip, Tooltip, Crosshair, Export);
-
-
 
 declare var jquery:any;
 declare var $ :any;
@@ -30,7 +28,9 @@ declare var google: any;
 })
 
 export class DashboardComponent implements OnInit {
-
+    [x: string]: any;
+    
+    
     ngOnInit(){
         var marker;
         var map ;
@@ -115,177 +115,108 @@ export class DashboardComponent implements OnInit {
         }
 
         
+
+
       
+    
+    
 
         function renderChart(){
 
+            var lat=marker.position.lng()
+            var lng=marker.position.lat()
+            var serviceUrl=  "http://127.0.0.1:5000/chartData"
+            var jsonData= {  lat: lat,  lng:lng}
+            var StrjsonData=JSON.stringify(jsonData);
+            $.ajax({ 
+                type: "POST", 
+                url: serviceUrl, 
+                data: StrjsonData,
+                contentType: "application/json; charset=utf-8", 
+                dataType: 'json', 
+                success: function (data) { 
+                    console.log('success', data); 
+                    // var dateString  = data['dates'];
+                    // var st = "yyyy-mm-dd"
+                    // var dt = new Date();
+                    // var dt_st = dateString
+
+                    let stockChart: StockChart = new StockChart({
+                        primaryXAxis: { valueType: 'DateTime', majorGridLines: { width: 0 }, crosshairTooltip: { enable: true }},
+                        primaryYAxis: {
+                            lineStyle: { color: 'transparent' },
+                            majorTickLines: { color: 'transparent', width: 0 },
+                        },
+                        chartArea: { border: { width: 0 } },
+                           series: [
+                               {
+                                   dataSource: data['chartData'], 
+                                   xName: 'dates', 
+                                   yName: 'ndvi', 
+                                   type : "Line",
+                               }
+                           ],
+                        tooltip: { enable: true},
+                        crosshair: { enable: true},
+                        seriesType : [],
+                        indicatorType : [],
+                        title: 'ข้อมูลดัชนีพืชพรรณ',
+                        load: (args: IStockChartEventArgs) => {
+                            let selectedTheme: string = location.hash.split('/')[1];
+                            selectedTheme = selectedTheme ? selectedTheme : 'Material';
+                            args.stockChart.theme = <ChartTheme>(selectedTheme.charAt(0).toUpperCase() +
+                                selectedTheme.slice(1)).replace(/-dark/i, 'Dark').replace(/contrast/i,  'Contrast');
+                        }
+                    });
+                       stockChart.appendTo('#container');
+                }, 
+                error: function (jqXHR, textStatus, errorThrown) { 
+                    alert('Exeption:' + errorThrown); 
+                } 
+            }); 
             
-    //        let stockChart: StockChart = new StockChart({
-    //            primaryXAxis: { valueType: 'DateTime', majorGridLines: { width: 0 }, crosshairTooltip: { enable: true }},
-    //            primaryYAxis: {
-    //                lineStyle: { color: 'transparent' },
-    //                majorTickLines: { color: 'transparent', width: 0 },
-    //            },
-    //            chartArea: { border: { width: 0 } },
-    //               series: [
-    //                   {
-    //                       dataSource: chartData, 
-    //                       xName: 'date', 
-    //                       yName: 'ndvi', 
-    //                       type : "Line",
-    //                   }
-    //               ],
-    //            tooltip: { enable: true},
-    //            crosshair: { enable: true},
-    //            seriesType : [],
-    //            indicatorType : [],
-    //            title: 'ข้อมูลดัชนีพืชพรรณ',
-    //            load: (args: IStockChartEventArgs) => {
-    //                let selectedTheme: string = location.hash.split('/')[1];
-    //                selectedTheme = selectedTheme ? selectedTheme : 'Material';
-    //                args.stockChart.theme = <ChartTheme>(selectedTheme.charAt(0).toUpperCase() +
-    //                    selectedTheme.slice(1)).replace(/-dark/i, 'Dark').replace(/contrast/i,  'Contrast');
-    //            }
-    //        });
-    //           stockChart.appendTo('#container');
-    //           return chartData;
-    //   }
+     
+        //    let stockChart: StockChart = new StockChart({
+        //        primaryXAxis: { valueType: 'DateTime', majorGridLines: { width: 0 }, crosshairTooltip: { enable: true }},
+        //        primaryYAxis: {
+        //            lineStyle: { color: 'transparent' },
+        //            majorTickLines: { color: 'transparent', width: 0 },
+        //        },
+        //        chartArea: { border: { width: 0 } },
+        //           series: [
+        //               {
+        //                   dataSource: chartData, 
+        //                   xName: 'date', 
+        //                   yName: 'ndvi', 
+        //                   type : "Line",
+        //               }
+        //           ],
+        //        tooltip: { enable: true},
+        //        crosshair: { enable: true},
+        //        seriesType : [],
+        //        indicatorType : [],
+        //        title: 'ข้อมูลดัชนีพืชพรรณ',
+        //        load: (args: IStockChartEventArgs) => {
+        //            let selectedTheme: string = location.hash.split('/')[1];
+        //            selectedTheme = selectedTheme ? selectedTheme : 'Material';
+        //            args.stockChart.theme = <ChartTheme>(selectedTheme.charAt(0).toUpperCase() +
+        //                selectedTheme.slice(1)).replace(/-dark/i, 'Dark').replace(/contrast/i,  'Contrast');
+        //        }
+        //    });
+        //       stockChart.appendTo('#container');
+        //       return chartData;
+      
+
+
 
     
-    //    let dataManager: DataManager = new DataManager({
-    //       url: 'http://127.0.0.1:5000/chartData',
-    //       crossDomain: true,
-    //    });
-    //    let query: Query = new Query().take(5).where('chartData', 'lessThan', 3, false);  
-    //    let stockChart: StockChart = new StockChart({
-
-    //              primaryXAxis: { valueType: 'DateTime', majorGridLines: { width: 0 }, crosshairTooltip: { enable: true }},
-    //              primaryYAxis: {
-    //                   lineStyle: { color: 'transparent' },
-    //                   majorTickLines: { color: 'transparent', width: 0 },
-    //               },
-    //               chartArea: { border: { width: 0 } },
-
-    //                  series: [
-    //                      {
-    //                          dataSource: dataManager,
-    //                          xName: 'dates', yName: 'ndvi', query: query,
-    //                          type : "Line"
-    //                      }
-    //                  ],
-    //               tooltip: { enable: true},
-    //              crosshair: { enable: true},
-    //               seriesType : [],
-    //               indicatorType : [],
-    //               title: 'ข้อมูลดัชนีพืชพรรณ',
-    //               load: (args: IStockChartEventArgs) => {
-    //                   let selectedTheme: string = location.hash.split('/')[1];
-    //                   selectedTheme = selectedTheme ? selectedTheme : 'Material';
-    //                   args.stockChart.theme = <ChartTheme>(selectedTheme.charAt(0).toUpperCase() +
-    //                       selectedTheme.slice(1)).replace(/-dark/i, 'Dark').replace(/contrast/i,  'Contrast');
-    //              }
-    //           });
-    //              stockChart.appendTo('#container');
-
-    //  }
+    } // End Function Renderchart()
     
-            
-    //     let dataManager: DataManager = new DataManager({
-    //     url: 'https://ej2services.syncfusion.com/production/web-services/api/Orders',
-    //       crossDomain: true,
-    //    });
-    //    let query: Query = new Query().take(50).where('Estimate', 'greaterThan', 0, false);
-    //    let stockChart: StockChart = new StockChart({
-
-    //               primaryXAxis: { valueType: 'DateTime', majorGridLines: { width: 0 }, crosshairTooltip: { enable: true }},
-    //              primaryYAxis: {
-    //                   lineStyle: { color: 'transparent' },
-    //                   majorTickLines: { color: 'transparent', width: 0 },
-    //               },
-    //               chartArea: { border: { width: 0 } },
-
-    //                  series: [
-    //                      {
-    //                          dataSource: dataManager,
-    //                         xName: "CustomerID", yName: "Freight" ,query: query,
-    //                          type : "Line"
-    //                      }
-    //                  ],
-    //               tooltip: { enable: true},
-    //              crosshair: { enable: true},
-    //               seriesType : [],
-    //               indicatorType : [],
-    //               title: 'ข้อมูลดัชนีพืชพรรณ',
-    //               load: (args: IStockChartEventArgs) => {
-    //                   let selectedTheme: string = location.hash.split('/')[1];
-    //                   selectedTheme = selectedTheme ? selectedTheme : 'Material';
-    //                   args.stockChart.theme = <ChartTheme>(selectedTheme.charAt(0).toUpperCase() +
-    //                       selectedTheme.slice(1)).replace(/-dark/i, 'Dark').replace(/contrast/i,  'Contrast');
-    //              }
-    //           });
-    //              stockChart.appendTo('#container');
-                
-    //  }
-
-
-    Chart.Inject(ColumnSeries, Category);
-    let dataManager: DataManager = new DataManager({
-    url: 'http://mvc.syncfusion.com/Services/Northwnd.svc/Tasks/'
-    });
-    let query: Query = new Query().take(5).where('Estimate', 'lessThan', 3, false);
-    let chart: Chart = new Chart({
-        primaryXAxis: {
-            valueType: 'Category',
-            title: 'Assignee'
-        },
-        primaryYAxis:
-        {
-            title: 'Estimate',
-            minimum: 0, maximum: 3, interval: 1
-        },
-        series: [
-            {
-                type: 'Column',
-                dataSource: dataManager,
-                xName: 'Assignee', yName: 'Estimate', query: query,
-                name: 'In progress'
-            }
-        ],
-        title: 'Sprint Task Analysis'
-}, '#container');
-        }
-
-// var lat=marker.position.lng()
-// var lng=marker.position.lat()
-// var serviceUrl=  "http://127.0.0.1:5000/chartData"
-// var jsonData= {  lat: lat,  lng:lng}
-// var StrjsonData=JSON.stringify(jsonData);
-
-// $.ajax({ 
-//     url: serviceUrl,
-//     type: "POST",
-//     dataType: "json",
-//     data: StrjsonData,
-//     contentType: "application/json",
-//     success: function (chartData) { 
-//        //here revenue is a array collection, so i have assigned directly to chart data source. 
-//         $("#container").ejChart({ 
-
-//             series: [{ 
-//                 type: 'line', 
-//                 dataSource: chartData, 
-//                 xName: "dates", 
-//                 yName: "ndvi" 
-//             }] 
-//         }) 
-//     } 
-// }); 
-
-//         }//อย่ายุ่งนะ
-
-        }
-
-}
+    
 
 
 
+
+} // End ngOnInit
+
+} // End Export 
